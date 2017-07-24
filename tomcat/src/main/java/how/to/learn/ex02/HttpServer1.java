@@ -1,6 +1,5 @@
-package how.to.learn.ex01;
+package how.to.learn.ex02;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -8,7 +7,7 @@ import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-public class HttpServer {
+public class HttpServer1 {
 
   /** WEB_ROOT is the directory where our HTML and other files reside.
    *  For this package, WEB_ROOT is the "webroot" directory under the working
@@ -16,8 +15,6 @@ public class HttpServer {
    *  The working directory is the location in the file system
    *  from where the java command was invoked.
    */
-  public static final String WEB_ROOT ="./";
-
   // shutdown command
   private static final String SHUTDOWN_COMMAND = "/SHUTDOWN";
 
@@ -25,7 +22,7 @@ public class HttpServer {
   private boolean shutdown = false;
 
   public static void main(String[] args) {
-    HttpServer server = new HttpServer();
+    HttpServer1 server = new HttpServer1();
     server.await();
   }
 
@@ -57,17 +54,26 @@ public class HttpServer {
         // create Response object
         Response response = new Response(output);
         response.setRequest(request);
-        response.sendStaticResource();
+
+        // check if this is a request for a servlet or a static resource
+        // a request for a servlet begins with "/servlet/"
+        if (request.getUri().startsWith("/servlet/")) {
+          ServletProcessor1 processor = new ServletProcessor1();
+          processor.process(request, response);
+        }
+        else {
+          StaticResourceProcessor processor = new StaticResourceProcessor();
+          processor.process(request, response);
+        }
 
         // Close the socket
         socket.close();
-
         //check if the previous URI is a shutdown command
         shutdown = request.getUri().equals(SHUTDOWN_COMMAND);
       }
       catch (Exception e) {
         e.printStackTrace();
-        continue;
+        System.exit(1);
       }
     }
   }
